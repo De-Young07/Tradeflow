@@ -1,0 +1,284 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TradeFlow NG - MVP Sequence Diagrams</title><style>*{box-sizing:border-box}body{margin:0;background:#f2f5f3;color:#23332d;font:16px/1.6 system-ui,sans-serif}main{max-width:1400px;margin:32px auto;padding:32px;background:#fff;border-top:6px solid #247450}h1,h2{color:#19563b;line-height:1.25}h2{margin-top:40px}li{margin:8px 0}.diagram{overflow:auto;border:1px solid #d4dfd8;padding:16px;margin:18px 0}.mermaid svg{height:auto}pre{white-space:pre;overflow:auto;font:13px/1.5 monospace}details{background:#f4f7f5;padding:12px}summary{cursor:pointer}#render-status{font-size:14px;color:#526359}@media print{main{margin:0;padding:0;max-width:none}details,#render-status{display:none}.diagram{overflow:visible;border:0;padding:0}}@media(max-width:700px){main{margin:0;padding:18px}}</style></head><body><main><h1>TradeFlow NG - Must-have MVP Sequence Diagrams</h1><p>Date: 16 September 2026</p><p>Sources: requirements.md and user-flow.md. Coverage: CD-01 through CD-05 and conditional MT-01 through MT-05 only.</p><h2>Reading the diagrams</h2><ul><li>Communication arrows represent phone calls or direct human communication. Arrows to the Manual Case Log represent the operator writing notes in paper, a plain document or an existing basic recording tool; the log is not an automated system or database.</li><li>Participant means an actual tomato producer or the person responsible for bulk tomato purchases for a retail business in Dikko/Niger. Discovery includes both groups. Neither is assumed to be a validated customer or payer.</li><li>The operator also performs the experiment-lead role. A counterparty appears only when relevant to a selected introduction; a budget owner appears only when identified and may be the participant or another person.</li><li>Stage B is conditional on discovery evidence and active interest in one feasible bounded task. Manual compatibility checking and introductions are alternatives to other bounded tasks, not compulsory matching functionality.</li><li>There is no required app, separate field agent, internal software system or database. No payment processing, logistics operation or automated recommendation is depicted. Recording terms, external payment status and response to a service offer is required evidence collection, not a payment service.</li></ul><h2>1. Main flow</h2><p>Corresponds to user-flow.md Steps 1-13. The main path shows the discovery gate passing and one manual task being performed and evaluated. The intervention is successful only if the recorded evidence shows the agreed failed step was addressed. The experiment can still complete with uncertain economics or a decision to narrow, pause or reject.</p><div class="diagram"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor P as Participant (tomato producer or retail bulk buyer)
+    actor O as TradeFlow Operator / Experiment Lead
+    actor C as Counterparty (only for an introduction)
+    actor B as Actual Budget Owner (if identified)
+    participant L as Manual Case Log
+
+    Note over P,L: Stage A - operator starts discovery in Dikko/Niger&lt;br/&gt;Phone calls or direct conversations, no app
+    O-&gt;&gt;O: Begin recruiting actual producers and retail-business tomato purchasers
+    loop Independent participants from both selected groups
+        O-&gt;&gt;P: Contact and establish actual role and authority (CD-01)
+        P--&gt;&gt;O: Explain role and agree to conversation
+        O-&gt;&gt;L: Record contact outcome and qualification
+        O-&gt;&gt;P: Reconstruct recent transaction and difficult one if available (CD-02)
+        P--&gt;&gt;O: Date, parties, grade, quantity/unit, timing, terms, steps and decision-makers
+        O-&gt;&gt;P: Ask about workaround, recurrence, consequences and refusal reasons (CD-03)
+        P--&gt;&gt;O: Actual experience, successful methods and any unknowns
+        O-&gt;&gt;P: Ask about next job, existing plan, deadline and authority (CD-04)
+        P--&gt;&gt;O: Upcoming sale/purchase, requirements and who can act or approve spending
+        O-&gt;&gt;L: Record accounts, estimates, available evidence and unknowns distinctly
+    end
+    O-&gt;&gt;O: Compare independent and contradictory cases (CD-05)
+    O-&gt;&gt;P: Discuss specific bounded help for an unresolved upcoming job
+    P--&gt;&gt;O: Actively accept that specific help
+    O-&gt;&gt;O: Confirm unresolved problem, upcoming job, deadline and feasible responsibilities
+    O-&gt;&gt;L: Record gate passed, sources and limits (CD-05)
+
+    Note over P,L: Stage B applies only after the gate passes&lt;br/&gt;This is one selected task, not a bundle of services
+    O-&gt;&gt;P: Agree baseline, failed step, one task, deadline and evidence of success (MT-01)
+    P--&gt;&gt;O: Original plan/fallback and agreed responsibilities
+    O-&gt;&gt;L: Record bounded task and baseline; start tracking time and cash costs
+    alt Selected task is a manual introduction
+        O-&gt;&gt;P: Confirm authority, actual stock/need and material terms (MT-02)
+        P--&gt;&gt;O: Grade, units, quantity, location, timing, payment/collection terms
+        O-&gt;&gt;C: Confirm complementary stock/need, authority and same material terms
+        C--&gt;&gt;O: Actual facts and acceptable terms
+        O-&gt;&gt;O: Check compatibility manually
+        O-&gt;&gt;P: Request permission for introduction and private contact sharing
+        P--&gt;&gt;O: Give specific permission
+        O-&gt;&gt;C: Request permission for introduction and private contact sharing
+        C--&gt;&gt;O: Give specific permission
+        O-&gt;&gt;L: Record confirmed facts, compatibility, permissions, who and when
+        O-&gt;&gt;P: Make agreed introduction before deadline (MT-03)
+        O-&gt;&gt;C: Make agreed introduction before deadline
+    else Another bounded manual task was selected
+        O-&gt;&gt;P: Check only needed task facts and permissions (MT-02)
+        P--&gt;&gt;O: Confirm relevant facts and permitted involvement
+        O-&gt;&gt;L: Record checks, sources, times and permissions
+        O-&gt;&gt;P: Perform agreed task through direct communication before deadline (MT-03)
+    end
+    P--&gt;&gt;O: Actual response to the action
+    O-&gt;&gt;L: Record action, time and response without claiming a completed trade
+    O-&gt;&gt;P: Follow up on actual outcome and unresolved issues (MT-04)
+    P--&gt;&gt;O: Available outcome, complaints and evidence status
+    opt Relevant counterparty was involved
+        O-&gt;&gt;C: Follow up on actual outcome
+        C--&gt;&gt;O: Willingly shared outcome or unknowns
+    end
+    Note over O,L: If parties independently transact, record willingly shared acceptance,&lt;br/&gt;timing and payment status separately; TradeFlow does not execute the trade
+    O-&gt;&gt;O: Compare outcome with baseline without assuming causal benefit
+    O-&gt;&gt;L: Record outcome, limits and all time/cash costs including follow-up (MT-04, MT-05)
+    alt Scope, beneficiary and actual budget owner are established
+        O-&gt;&gt;B: Discuss explicit bounded service offer using value, alternatives and measured cost
+        B--&gt;&gt;O: Actual response and any voluntary repeat request
+        O-&gt;&gt;L: Separate interest, conditional agreement and actual agreed payment (MT-05)
+    else Commercial prerequisites remain unknown
+        O-&gt;&gt;L: Record why offer cannot yet be tested; payer and viability remain unresolved
+    end
+    O-&gt;&gt;O: Review supporting and contrary evidence, outcome, cost and economic response
+    O-&gt;&gt;L: Record proceed, narrow, pause or reject with sources and limits (CD-05)
+    Note over O,L: Experiment cycle complete with a traceable learning decision&lt;br/&gt;An introduction or praise alone does not establish service success</pre></div><details><summary>Mermaid source</summary><pre>sequenceDiagram
+    autonumber
+    actor P as Participant (tomato producer or retail bulk buyer)
+    actor O as TradeFlow Operator / Experiment Lead
+    actor C as Counterparty (only for an introduction)
+    actor B as Actual Budget Owner (if identified)
+    participant L as Manual Case Log
+
+    Note over P,L: Stage A - operator starts discovery in Dikko/Niger&lt;br/&gt;Phone calls or direct conversations, no app
+    O-&gt;&gt;O: Begin recruiting actual producers and retail-business tomato purchasers
+    loop Independent participants from both selected groups
+        O-&gt;&gt;P: Contact and establish actual role and authority (CD-01)
+        P--&gt;&gt;O: Explain role and agree to conversation
+        O-&gt;&gt;L: Record contact outcome and qualification
+        O-&gt;&gt;P: Reconstruct recent transaction and difficult one if available (CD-02)
+        P--&gt;&gt;O: Date, parties, grade, quantity/unit, timing, terms, steps and decision-makers
+        O-&gt;&gt;P: Ask about workaround, recurrence, consequences and refusal reasons (CD-03)
+        P--&gt;&gt;O: Actual experience, successful methods and any unknowns
+        O-&gt;&gt;P: Ask about next job, existing plan, deadline and authority (CD-04)
+        P--&gt;&gt;O: Upcoming sale/purchase, requirements and who can act or approve spending
+        O-&gt;&gt;L: Record accounts, estimates, available evidence and unknowns distinctly
+    end
+    O-&gt;&gt;O: Compare independent and contradictory cases (CD-05)
+    O-&gt;&gt;P: Discuss specific bounded help for an unresolved upcoming job
+    P--&gt;&gt;O: Actively accept that specific help
+    O-&gt;&gt;O: Confirm unresolved problem, upcoming job, deadline and feasible responsibilities
+    O-&gt;&gt;L: Record gate passed, sources and limits (CD-05)
+
+    Note over P,L: Stage B applies only after the gate passes&lt;br/&gt;This is one selected task, not a bundle of services
+    O-&gt;&gt;P: Agree baseline, failed step, one task, deadline and evidence of success (MT-01)
+    P--&gt;&gt;O: Original plan/fallback and agreed responsibilities
+    O-&gt;&gt;L: Record bounded task and baseline; start tracking time and cash costs
+    alt Selected task is a manual introduction
+        O-&gt;&gt;P: Confirm authority, actual stock/need and material terms (MT-02)
+        P--&gt;&gt;O: Grade, units, quantity, location, timing, payment/collection terms
+        O-&gt;&gt;C: Confirm complementary stock/need, authority and same material terms
+        C--&gt;&gt;O: Actual facts and acceptable terms
+        O-&gt;&gt;O: Check compatibility manually
+        O-&gt;&gt;P: Request permission for introduction and private contact sharing
+        P--&gt;&gt;O: Give specific permission
+        O-&gt;&gt;C: Request permission for introduction and private contact sharing
+        C--&gt;&gt;O: Give specific permission
+        O-&gt;&gt;L: Record confirmed facts, compatibility, permissions, who and when
+        O-&gt;&gt;P: Make agreed introduction before deadline (MT-03)
+        O-&gt;&gt;C: Make agreed introduction before deadline
+    else Another bounded manual task was selected
+        O-&gt;&gt;P: Check only needed task facts and permissions (MT-02)
+        P--&gt;&gt;O: Confirm relevant facts and permitted involvement
+        O-&gt;&gt;L: Record checks, sources, times and permissions
+        O-&gt;&gt;P: Perform agreed task through direct communication before deadline (MT-03)
+    end
+    P--&gt;&gt;O: Actual response to the action
+    O-&gt;&gt;L: Record action, time and response without claiming a completed trade
+    O-&gt;&gt;P: Follow up on actual outcome and unresolved issues (MT-04)
+    P--&gt;&gt;O: Available outcome, complaints and evidence status
+    opt Relevant counterparty was involved
+        O-&gt;&gt;C: Follow up on actual outcome
+        C--&gt;&gt;O: Willingly shared outcome or unknowns
+    end
+    Note over O,L: If parties independently transact, record willingly shared acceptance,&lt;br/&gt;timing and payment status separately; TradeFlow does not execute the trade
+    O-&gt;&gt;O: Compare outcome with baseline without assuming causal benefit
+    O-&gt;&gt;L: Record outcome, limits and all time/cash costs including follow-up (MT-04, MT-05)
+    alt Scope, beneficiary and actual budget owner are established
+        O-&gt;&gt;B: Discuss explicit bounded service offer using value, alternatives and measured cost
+        B--&gt;&gt;O: Actual response and any voluntary repeat request
+        O-&gt;&gt;L: Separate interest, conditional agreement and actual agreed payment (MT-05)
+    else Commercial prerequisites remain unknown
+        O-&gt;&gt;L: Record why offer cannot yet be tested; payer and viability remain unresolved
+    end
+    O-&gt;&gt;O: Review supporting and contrary evidence, outcome, cost and economic response
+    O-&gt;&gt;L: Record proceed, narrow, pause or reject with sources and limits (CD-05)
+    Note over O,L: Experiment cycle complete with a traceable learning decision&lt;br/&gt;An introduction or praise alone does not establish service success</pre></details><h2>2. No-match / rejection flow</h2><p>Corresponds to R1-R3. No-match applies only to a proposed introduction after the gate passes. Refusal during recruitment or task selection stops that activity without requiring a search for a replacement. If a budget owner rejects the later service offer, MT-05 records that rejection separately from any operational outcome, and the operator includes it in the final evidence review; no collection is required.</p><div class="diagram"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor P as Participant (tomato producer or retail bulk buyer)
+    actor O as TradeFlow Operator / Experiment Lead
+    actor C as Counterparty (only for an introduction)
+    participant L as Manual Case Log
+
+    Note over P,L: Entry from recruitment, stage review or a conditional manual test
+    alt Contact or participant rejects participation or specific help
+        O-&gt;&gt;P: Contact or discuss a specific bounded task
+        P--&gt;&gt;O: Decline, with reason if willingly provided
+        O-&gt;&gt;L: Record refusal and stated reason; do not invent a reason (CD-01, CD-03)
+    else Proposed introduction after Stage B gate passes
+        O-&gt;&gt;P: Check actual stock/need, authority, terms and permission
+        P--&gt;&gt;O: Facts, acceptable terms and permission decision
+        O-&gt;&gt;C: Check counterpart facts, terms and permission
+        C--&gt;&gt;O: Incompatible terms or refusal of introduction/contact sharing
+        O-&gt;&gt;O: Identify mismatch or missing permission (MT-02)
+        O-&gt;&gt;L: Retain checked facts, mismatch/refusal, sources and times
+    end
+    O-&gt;&gt;O: Stop the declined or incompatible activity
+    Note over O,C: No introduction without both permissions and essential confirmed compatibility&lt;br/&gt;No forced match, fulfillment promise or expanded task
+    O-&gt;&gt;L: Record action status and any incurred time/cash costs (MT-03, MT-05 if applicable)
+    opt A manual action already occurred
+        O-&gt;&gt;P: Follow up on available outcome and unresolved issues (MT-04)
+        P--&gt;&gt;O: Available account or unknown outcome
+        O-&gt;&gt;L: Preserve outcome separately from rejection
+    end
+    O-&gt;&gt;O: Review negative case alongside other evidence (CD-05)
+    alt Further discovery is justified
+        O-&gt;&gt;L: Record decision, limits and return to discovery
+    else End this experiment cycle
+        O-&gt;&gt;L: Record narrow, pause or reject with sources and remaining unknowns
+    end
+    Note over O,L: A documented negative result is valid learning, not a successful match</pre></div><details><summary>Mermaid source</summary><pre>sequenceDiagram
+    autonumber
+    actor P as Participant (tomato producer or retail bulk buyer)
+    actor O as TradeFlow Operator / Experiment Lead
+    actor C as Counterparty (only for an introduction)
+    participant L as Manual Case Log
+
+    Note over P,L: Entry from recruitment, stage review or a conditional manual test
+    alt Contact or participant rejects participation or specific help
+        O-&gt;&gt;P: Contact or discuss a specific bounded task
+        P--&gt;&gt;O: Decline, with reason if willingly provided
+        O-&gt;&gt;L: Record refusal and stated reason; do not invent a reason (CD-01, CD-03)
+    else Proposed introduction after Stage B gate passes
+        O-&gt;&gt;P: Check actual stock/need, authority, terms and permission
+        P--&gt;&gt;O: Facts, acceptable terms and permission decision
+        O-&gt;&gt;C: Check counterpart facts, terms and permission
+        C--&gt;&gt;O: Incompatible terms or refusal of introduction/contact sharing
+        O-&gt;&gt;O: Identify mismatch or missing permission (MT-02)
+        O-&gt;&gt;L: Retain checked facts, mismatch/refusal, sources and times
+    end
+    O-&gt;&gt;O: Stop the declined or incompatible activity
+    Note over O,C: No introduction without both permissions and essential confirmed compatibility&lt;br/&gt;No forced match, fulfillment promise or expanded task
+    O-&gt;&gt;L: Record action status and any incurred time/cash costs (MT-03, MT-05 if applicable)
+    opt A manual action already occurred
+        O-&gt;&gt;P: Follow up on available outcome and unresolved issues (MT-04)
+        P--&gt;&gt;O: Available account or unknown outcome
+        O-&gt;&gt;L: Preserve outcome separately from rejection
+    end
+    O-&gt;&gt;O: Review negative case alongside other evidence (CD-05)
+    alt Further discovery is justified
+        O-&gt;&gt;L: Record decision, limits and return to discovery
+    else End this experiment cycle
+        O-&gt;&gt;L: Record narrow, pause or reject with sources and remaining unknowns
+    end
+    Note over O,L: A documented negative result is valid learning, not a successful match</pre></details><h2>3. Invalid / unverified information flow</h2><p>Corresponds to I1-I3. Hold the dependent action when an essential fact cannot be established; unaffected discovery may continue. Missing optional supporting documents or a field observation does not invalidate a clearly labelled reported account.</p><div class="diagram"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor P as Relevant Participant / Person Able to Confirm
+    actor O as TradeFlow Operator / Experiment Lead
+    participant L as Manual Case Log
+
+    Note over P,L: Entry when a required fact is incomplete, conflicting or unverified&lt;br/&gt;Applies to discovery, task checks or outcome follow-up
+    O-&gt;&gt;P: Ask for the fact needed at the current step
+    P--&gt;&gt;O: Incomplete, conflicting or unconfirmed account
+    O-&gt;&gt;L: Record gap, source, evidence status and affected step (CD-03, MT-02 or MT-04)
+    O-&gt;&gt;O: Hold only the decision or action depending on the essential unknown
+    O-&gt;&gt;P: Seek clarification by call/direct conversation where possible
+    P--&gt;&gt;O: Clarification, inability to confirm or no response
+    O-&gt;&gt;L: Record what was checked, with whom and when
+    alt Essential facts resolved and action still timely
+        O-&gt;&gt;O: Recheck applicable gate, task facts and permissions
+        O-&gt;&gt;L: Record resolution and resume affected main-flow step
+    else Required facts remain unknown or deadline has passed
+        alt Gap prevents Stage B entry or safe performance of the agreed task
+            O-&gt;&gt;O: Do not enter Stage B or perform the dependent action
+            Note over O,L: No introduction without essential facts and both permissions
+        else Gap concerns an outcome after an action
+            O-&gt;&gt;L: Keep outcome unknown; do not claim benefit or completed trade
+        end
+        O-&gt;&gt;L: Record remaining unknowns, any missed deadline, actions and incurred costs
+        O-&gt;&gt;O: Review evidence and decide next step (CD-05)
+        alt More discovery is justified
+            O-&gt;&gt;L: Record further discovery need and return to unaffected discovery
+        else End this experiment cycle
+            O-&gt;&gt;L: Record narrow, pause or reject with sources and limitations
+        end
+    end
+    Note over P,L: A reported account may remain reported without supporting documents&lt;br/&gt;Never replace unknowns with zero or founder guesses</pre></div><details><summary>Mermaid source</summary><pre>sequenceDiagram
+    autonumber
+    actor P as Relevant Participant / Person Able to Confirm
+    actor O as TradeFlow Operator / Experiment Lead
+    participant L as Manual Case Log
+
+    Note over P,L: Entry when a required fact is incomplete, conflicting or unverified&lt;br/&gt;Applies to discovery, task checks or outcome follow-up
+    O-&gt;&gt;P: Ask for the fact needed at the current step
+    P--&gt;&gt;O: Incomplete, conflicting or unconfirmed account
+    O-&gt;&gt;L: Record gap, source, evidence status and affected step (CD-03, MT-02 or MT-04)
+    O-&gt;&gt;O: Hold only the decision or action depending on the essential unknown
+    O-&gt;&gt;P: Seek clarification by call/direct conversation where possible
+    P--&gt;&gt;O: Clarification, inability to confirm or no response
+    O-&gt;&gt;L: Record what was checked, with whom and when
+    alt Essential facts resolved and action still timely
+        O-&gt;&gt;O: Recheck applicable gate, task facts and permissions
+        O-&gt;&gt;L: Record resolution and resume affected main-flow step
+    else Required facts remain unknown or deadline has passed
+        alt Gap prevents Stage B entry or safe performance of the agreed task
+            O-&gt;&gt;O: Do not enter Stage B or perform the dependent action
+            Note over O,L: No introduction without essential facts and both permissions
+        else Gap concerns an outcome after an action
+            O-&gt;&gt;L: Keep outcome unknown; do not claim benefit or completed trade
+        end
+        O-&gt;&gt;L: Record remaining unknowns, any missed deadline, actions and incurred costs
+        O-&gt;&gt;O: Review evidence and decide next step (CD-05)
+        alt More discovery is justified
+            O-&gt;&gt;L: Record further discovery need and return to unaffected discovery
+        else End this experiment cycle
+            O-&gt;&gt;L: Record narrow, pause or reject with sources and limitations
+        end
+    end
+    Note over P,L: A reported account may remain reported without supporting documents&lt;br/&gt;Never replace unknowns with zero or founder guesses</pre></details><h2>Completion definition</h2><p>MVP completed successfully when: TradeFlow records a traceable proceed, narrow, pause or reject decision from actual discovery evidence and, if the gate passes, one bounded manual test with its actions, available outcomes, effort, economic response and remaining unknowns recorded.</p><p id="render-status">Diagrams render when Mermaid can load from the internet. Their readable source is retained below each diagram.</p></main><script type="module">
+try {
+ const {default:mermaid}=await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+ mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'neutral',sequence:{useMaxWidth:true,wrap:true}});
+ await mermaid.run({querySelector:'.mermaid'});
+ document.getElementById('render-status').textContent='Diagrams rendered. Expand Mermaid source to view the exact diagram text.';
+} catch(error) {
+ document.getElementById('render-status').textContent='Diagram rendering is unavailable here. Read the Mermaid source shown for each diagram.';
+}
+</script></body></html>
