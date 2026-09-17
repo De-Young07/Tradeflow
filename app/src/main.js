@@ -208,21 +208,21 @@ class DiscoveryApp {
       },
       async (pRef, consent, language, audioFile) => {
         // AI Audio Processing Handler (Phase AI-2 & AI-6)
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
         try {
           const formData = new FormData();
           formData.append('recordingConsent', consent);
           formData.append('operatorLanguage', language);
           if (audioFile) formData.append('audioFile', audioFile);
 
-          const response = await fetch('/api/transcribe', {
+          const response = await fetch(`${API_BASE}/api/transcribe`, {
             method: 'POST',
             body: formData
           });
 
           if (!response.ok) {
-            const errJson = await response.json();
-            throw new Error(errJson.message || response.statusText);
-            return;
+            const errJson = await response.json().catch(() => ({}));
+            throw new Error(errJson.message || `Server error (${response.status})`);
           }
 
           const aiDraftResult = await response.json();

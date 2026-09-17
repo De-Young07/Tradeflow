@@ -141,6 +141,10 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
           <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
             Upload consented audio recordings for transcription, translation, and structured evidence extraction. Review the transcript and claims before saving evidence. AI drafts do not change qualification.
           </p>
+          ${!import.meta.env.VITE_API_BASE_URL ? `
+          <div style="background: rgba(251,191,36,0.12); border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; font-size: 11px; color: #f59e0b;">
+            <strong>⚠️ Demo mode:</strong> Transcription and AI analysis will return simulated example output. No real audio is processed. To enable live transcription, connect the backend service.
+          </div>` : ''}
 
           <form id="form-ai-audio" onsubmit="return false;">
             <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
@@ -303,7 +307,7 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
         if (!audioFile) { showErrors(document.getElementById('form-ai-audio'), ['Choose an interview audio file first.']); return; }
         btnProcessAi.disabled=true;btnProcessAi.textContent='Transcribing… please keep this page open';
         try { await onProcessAiAudio(pRef, consent, lang, audioFile); }
-        catch (error) { console.error(error);showErrors(document.getElementById('form-ai-audio'), ['We could not process this recording. Check that the interview service is running, then try again. Your selections are retained.']); }
+        catch (error) { console.error(error);showErrors(document.getElementById('form-ai-audio'), ['Audio processing is currently unavailable. This feature requires the backend service to be connected. Your file selection is retained — try again shortly or contact your administrator.']); }
         finally { btnProcessAi.disabled=false;btnProcessAi.textContent='Transcribe and review'; }
       }
     };
