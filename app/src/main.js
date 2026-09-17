@@ -1,5 +1,7 @@
+import { installUX, toast } from './ui/ux.js';
+import { pendingPeople, nextAction, escapeHtml } from './ui/workflow.js';
 /**
- * Main Controller for TradeFlow Discovery Operations Modules (CD-01 to CD-05)
+ * Main Controller for TradeFlow Discovery Operations Modules & AI Intelligence Layer (CD-01 to CD-05 + AI)
  */
 import { LocalStorageAdapter } from './data/localStorageAdapter.js';
 import { renderDashboard } from './ui/dashboard.js';
@@ -14,6 +16,9 @@ import { renderDecisionModal } from './ui/decisionForm.js';
 import { renderParticipantDrawer } from './ui/participantDetail.js';
 import { renderJournalView } from './ui/journalView.js';
 import { renderSettingsModal } from './ui/dangerZone.js';
+import { renderAiReviewModal } from './ui/aiReviewModal.js';
+import { renderDiscoveryIntelligence } from './ui/discoveryIntelligence.js';
+import { renderDailyBrief } from './ui/dailyBriefView.js';
 import { downloadJsonFile } from './data/export.js';
 
 class DiscoveryApp {
@@ -33,6 +38,7 @@ class DiscoveryApp {
     this.setupTabs();
     this.setupHeaderActions();
     this.render();
+    installUX();
   }
 
   async loadData() {
@@ -83,6 +89,7 @@ class DiscoveryApp {
       btnNew.onclick = () => {
         renderParticipantModal(async (newP) => {
           await this.storage.saveParticipant(newP);
+          toast("Participant added. Open Participants to continue.");
           await this.loadData();
           this.render();
         }, this.participants);
@@ -110,7 +117,7 @@ class DiscoveryApp {
 
   render() {
     if (this.activeTab === 'tab-dashboard') {
-      renderDashboard(this.participants, this.journalEntries, this.cases, this.jobs, this.decisions);
+      renderDashboard(this.participants, this.journalEntries, this.cases, this.jobs, this.decisions, ref => this.openParticipantDrawer(ref));
     } else if (this.activeTab === 'tab-registry') {
       renderParticipantTable(
         this.participants,
@@ -118,15 +125,22 @@ class DiscoveryApp {
         (editP) => {
           renderParticipantModal(async (updatedP) => {
             await this.storage.saveParticipant(updatedP);
+            toast("Participant details saved.");
             await this.loadData();
             this.render();
           }, this.participants, editP);
-        }
+        }, this.journalEntries
       );
+     } else if (this.activeTab === 'tab-followups') {
+      const root = document.getElementById('tab-followups');
+      const people = pendingPeople(this.participants.filter(p => p.record_type === 'FIELD'), this.journalEntries);
+      root.innerHTML = '<h2>Follow-ups</h2><p>People needing contact or qualification, based on saved field records. This is not a scheduled reminder list.</p>' + (people.length ? people.map(p => `<button class="attention-row" data-ref="${escapeHtml(p.participant_ref)}"><span><strong>${escapeHtml(p.full_name)}</strong><br>${escapeHtml(nextAction(p,this.journalEntries).text)}</span><span>Open participant →</span></button>`).join('') : '<p class="empty-state">No pending contact or qualification work. Open Participants to review interviews and evidence.</p>');
+      root.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => this.openParticipantDrawer(b.dataset.ref));
     } else if (this.activeTab === 'tab-cases') {
       renderCaseTable(this.cases, this.participants, () => {
         renderCaseModal(async (newCase) => {
           await this.storage.saveCase(newCase);
+          toast("Transaction interview saved.");
           await this.loadData();
           this.render();
         }, this.participants, '', this.cases.length);
@@ -135,6 +149,7 @@ class DiscoveryApp {
       renderJobTable(this.jobs, this.participants, () => {
         renderJobModal(async (newJob) => {
           await this.storage.saveJob(newJob);
+          toast("Next sale / purchase saved.");
           await this.loadData();
           this.render();
         }, this.participants, this.cases, '', this.jobs.length);
@@ -143,12 +158,17 @@ class DiscoveryApp {
       renderDecisionTable(this.decisions, () => {
         renderDecisionModal(async (newDecision) => {
           await this.storage.saveDecision(newDecision);
+          toast("Stage decision saved.");
           await this.loadData();
           this.render();
         }, this.participants, this.cases, this.decisions.length);
       });
     } else if (this.activeTab === 'tab-journal') {
       renderJournalView(this.journalEntries, this.participants);
+    } else if (this.activeTab === 'tab-intelligence') {
+      renderDiscoveryIntelligence('tab-intelligence', this.journalEntries, this.participants);
+    } else if (this.activeTab === 'tab-brief') {
+      renderDailyBrief('tab-brief', this.participants, this.journalEntries, this.cases, this.jobs, this.decisions);
     }
   }
 
@@ -165,12 +185,15 @@ class DiscoveryApp {
       this.decisions,
       async (newJ) => {
         await this.storage.saveJournalEntry(newJ);
+        toast("Contact / evidence entry recorded. Update the participant details if the contact outcome or fit changed.");
         await this.loadData();
+        this.render();
         this.openParticipantDrawer(participantRef);
       },
       (pRef) => {
         renderCaseModal(async (newCase) => {
           await this.storage.saveCase(newCase);
+          toast("Transaction interview saved.");
           await this.loadData();
           this.openParticipantDrawer(pRef);
         }, this.participants, pRef, this.cases.length);
@@ -178,14 +201,57 @@ class DiscoveryApp {
       (pRef) => {
         renderJobModal(async (newJob) => {
           await this.storage.saveJob(newJob);
+          toast("Next sale / purchase saved.");
           await this.loadData();
           this.openParticipantDrawer(pRef);
         }, this.participants, this.cases, pRef, this.jobs.length);
+      },
+      async (pRef, consent, language, audioFile) => {
+        // AI Audio Processing Handler (Phase AI-2 & AI-6)
+        try {
+          const formData = new FormData();
+          formData.append('recordingConsent', consent);
+          formData.append('operatorLanguage', language);
+          if (audioFile) formData.append('audioFile', audioFile);
+
+          const response = await fetch('/api/transcribe', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            const errJson = await response.json();
+            throw new Error(errJson.message || response.statusText);
+            return;
+          }
+
+          const aiDraftResult = await response.json();
+
+          // Trigger Human Review Modal
+          renderAiReviewModal(
+            aiDraftResult,
+            p,
+            async (approvedR5Entry) => {
+              await this.storage.saveJournalEntry(approvedR5Entry);
+              toast("Human-reviewed interview saved. Claims keep their individual evidence status.");
+              await this.loadData();
+              this.openParticipantDrawer(pRef);
+            },
+            () => {
+              console.log('AI Draft rejected by operator.');
+            }
+          );
+        } catch (err) {
+          throw err;
+        }
       },
       () => {
         this.selectedParticipant = null;
       }
     );
+    const edit=document.createElement('button');edit.className='btn btn-secondary';edit.textContent='Edit fit / contact outcome';
+    document.querySelector('.participant-next')?.append(edit);
+    edit.onclick=()=>renderParticipantModal(async updated=>{await this.storage.saveParticipant(updated);await this.loadData();this.render();await this.openParticipantDrawer(participantRef);toast('Participant details saved.');},this.participants,p);
   }
 }
 

@@ -1,3 +1,5 @@
+import {nextAction, label, escapeHtml} from './workflow.js';
+import {showErrors, toast} from './ux.js';
 /**
  * Participant Detail Drawer with 360° Discovery View (R1, R2, R3, R5)
  */
@@ -5,7 +7,7 @@ import { createR5JournalEntry } from '../domain/models.js';
 import { validateR5JournalEntry } from '../domain/validation.js';
 import { CHANNEL_TYPES, EVENT_TYPES, EVIDENCE_STATUS, CLAIMED_ROLE_LABELS, CONSEQUENCE_LABELS } from '../domain/constants.js';
 
-export function renderParticipantDrawer(participant, journalEntries = [], cases = [], jobs = [], decisions = [], onSaveJournalEntry, onAddCaseClick, onAddJobClick, onClose) {
+export function renderParticipantDrawer(participant, journalEntries = [], cases = [], jobs = [], decisions = [], onSaveJournalEntry, onAddCaseClick, onAddJobClick, onProcessAiAudio, onClose) {
   const drawerContainer = document.getElementById('drawer-container');
   if (!drawerContainer || !participant) return;
 
@@ -41,25 +43,25 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
           <div>
             <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Eligibility Status</div>
             <div style="font-weight: 700; color: ${participant.eligibility_status === 'ELIGIBLE' ? 'var(--success)' : participant.eligibility_status === 'INELIGIBLE' ? 'var(--danger)' : 'var(--warning)'}; margin-top: 2px;">
-              ${participant.eligibility_status}
+              ${label(participant.eligibility_status)}
               ${participant.operator_override ? '⚡' : ''}
             </div>
           </div>
           <div>
             <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Contact Outcome</div>
-            <div style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">${participant.contact_outcome}</div>
+            <div style="font-weight: 600; color: var(--text-primary); margin-top: 2px;">${label(participant.contact_outcome)}</div>
           </div>
           <div>
             <div style="font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Participation Status</div>
             <div style="font-weight: 600; color: ${participant.participation_status === 'DISCOVERY_PARTICIPANT' ? 'var(--success)' : 'var(--text-muted)'}; margin-top: 2px;">
-              ${participant.participation_status}
+              ${label(participant.participation_status)}
             </div>
           </div>
         </div>
 
         <!-- R1 Profile Details -->
         <div style="background-color: var(--bg-input); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 12px;">
-          <strong style="color: var(--primary);">R1 Registry Profile & Scope Summary</strong>
+          <strong style="color: var(--primary);">Overview and discovery fit</strong>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
             <div><strong>Claimed Role:</strong> ${CLAIMED_ROLE_LABELS[participant.claimed_role] || participant.claimed_role}</div>
             <div><strong>Commodity:</strong> ${participant.commodity}</div>
@@ -77,10 +79,10 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
         <!-- Linked R2 Transaction Cases -->
         <div style="background-color: var(--bg-input); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="color: var(--primary);">R2 Reconstructed Transaction Cases (${participantCases.length})</strong>
-            <button id="btn-drawer-add-case" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ Add Case (R2)</button>
+            <strong style="color: var(--primary);">Past transaction evidence (${participantCases.length})</strong>
+            <button id="btn-drawer-add-case" class="btn btn-secondary btn-sm" style="font-size: 11px;">Log transaction interview</button>
           </div>
-          ${participantCases.length === 0 ? '<div style="color: var(--text-muted);">No transaction cases recorded yet for this participant.</div>' : ''}
+          ${participantCases.length === 0 ? '<div style="color: var(--text-muted);">No transaction interview recorded. Ask about a recent sale or purchase, then choose Log transaction interview.</div>' : ''}
           ${participantCases.map(c => `
             <div style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;">
               <div style="display: flex; justify-content: space-between;">
@@ -97,10 +99,10 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
         <!-- Linked R3 Upcoming Jobs -->
         <div style="background-color: var(--bg-input); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="color: var(--primary);">R3 Upcoming Jobs & Fallback Baselines (${participantJobs.length})</strong>
-            <button id="btn-drawer-add-job" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ Add Job Brief (R3)</button>
+            <strong style="color: var(--primary);">Next sale or purchase (${participantJobs.length})</strong>
+            <button id="btn-drawer-add-job" class="btn btn-secondary btn-sm" style="font-size: 11px;">Add next sale / purchase</button>
           </div>
-          ${participantJobs.length === 0 ? '<div style="color: var(--text-muted);">No upcoming job briefs recorded yet for this participant.</div>' : ''}
+          ${participantJobs.length === 0 ? '<div style="color: var(--text-muted);">No next sale or purchase recorded. Ask what they plan to do next and when they can still change it.</div>' : ''}
           ${participantJobs.map(j => `
             <div style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;">
               <div style="display: flex; justify-content: space-between;">
@@ -116,7 +118,7 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
         <!-- Linked R4 Stage Decisions -->
         <div style="background-color: var(--bg-input); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="color: var(--primary);">R4 Stage Decisions Citing Participant (${participantDecisions.length})</strong>
+            <strong style="color: var(--primary);">Decisions using this evidence (${participantDecisions.length})</strong>
           </div>
           ${participantDecisions.length === 0 ? '<div style="color: var(--text-muted);">No stage decisions currently cite this participant or their transaction cases.</div>' : ''}
           ${participantDecisions.map(d => `
@@ -130,9 +132,52 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
           `).join('')}
         </div>
 
+        <!-- AI Audio Upload & Interview Processing Intake Form (Phase AI-2) -->
+        <div style="background-color: var(--bg-card); border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="font-size: 14px; font-weight: 700; color: var(--primary);">🎙️ Upload an interview</h3>
+            <span class="badge badge-info">Review required</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+            Upload consented audio recordings for transcription, translation, and structured evidence extraction. Review the transcript and claims before saving evidence. AI drafts do not change qualification.
+          </p>
+
+          <form id="form-ai-audio" onsubmit="return false;">
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+              <div style="background-color: var(--bg-input); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <label style="display: flex; gap: 8px; align-items: center; font-weight: 600; cursor: pointer;">
+                  <input type="checkbox" id="ai-recording-consent" style="width: 16px; height: 16px;">
+                  <span>Participant explicit recording & research data consent granted *</span>
+                </label>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label for="ai-language-select">Interview Language</label>
+                  <select id="ai-language-select" class="form-control">
+                    <option value="AUTO_DETECT">Auto-detect (default)</option>
+                    <option value="ha-NG">Hausa</option>
+                    <option value="en-NG">English</option>
+                    <option value="pcm-NG">Nigerian Pidgin</option>
+                    <option value="MIXED">Mixed / Code-Switched</option>
+                    <option value="OTHER">Other Language</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="ai-audio-file">Select Audio File (.wav, .mp3, .m4a, .ogg) *</label>
+                  <input type="file" id="ai-audio-file" class="form-control" accept="audio/*">
+                </div>
+              </div>
+
+              <button id="btn-process-ai-audio" class="btn btn-primary btn-sm" style="margin-top: 4px;">Transcribe and review</button>
+            </div>
+          </form>
+        </div>
+
         <!-- Log New R5 Event Form -->
         <div style="background-color: var(--bg-input); border: 1px dashed var(--border-light); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
-          <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--primary);">+ Log Dated Evidence Journal Entry (R5)</h3>
+          <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--primary);">Log contact or interview notes</h3>
           
           <form id="form-log-r5" onsubmit="return false;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -147,7 +192,7 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
               </div>
 
               <div class="form-group">
-                <label for="r5-event-type">Event Type *</label>
+                <label for="r5-event-type">What are you recording? *</label>
                 <select id="r5-event-type" class="form-control">
                   <option value="${EVENT_TYPES.CONTACT_ATTEMPT}">CONTACT_ATTEMPT</option>
                   <option value="${EVENT_TYPES.QUALIFICATION_CHECK}">QUALIFICATION_CHECK</option>
@@ -159,12 +204,12 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
               </div>
 
               <div class="form-group">
-                <label for="r5-evidence-status">Claim Evidence Status *</label>
+                <label for="r5-evidence-status">How do we know this? *</label>
                 <select id="r5-evidence-status" class="form-control">
-                  <option value="${EVIDENCE_STATUS.REPORTED}">REPORTED (Stated during call)</option>
-                  <option value="${EVIDENCE_STATUS.ESTIMATED}">ESTIMATED (Calculated approx)</option>
-                  <option value="${EVIDENCE_STATUS.CHECKED}">CHECKED (Verified against source)</option>
-                  <option value="${EVIDENCE_STATUS.UNKNOWN}">UNKNOWN (Missing/unconfirmed)</option>
+                  <option value="${EVIDENCE_STATUS.REPORTED}">Reported by participant</option>
+                  <option value="${EVIDENCE_STATUS.ESTIMATED}">Estimate</option>
+                  <option value="${EVIDENCE_STATUS.CHECKED}">Checked against a named source</option>
+                  <option value="${EVIDENCE_STATUS.UNKNOWN}">Unknown / not confirmed</option>
                 </select>
               </div>
 
@@ -174,32 +219,32 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
               </div>
 
               <div class="form-group full-width">
-                <label for="r5-action">Action / Question Executed *</label>
+                <label for="r5-action">What did you do or ask? *</label>
                 <input type="text" id="r5-action" class="form-control" placeholder="e.g. Called candidate to verify weekly bulk purchasing authority" required>
               </div>
 
               <div class="form-group full-width">
-                <label for="r5-response">Raw Response / Candidate Notes *</label>
+                <label for="r5-response">What happened or what did they say? *</label>
                 <textarea id="r5-response" class="form-control" rows="2" placeholder="Record actual wording, stated refusal reasons, or verified authority evidence..." required></textarea>
               </div>
             </div>
 
-            <button id="btn-save-r5" class="btn btn-primary btn-sm" style="margin-top: 10px;">Log Journal Entry (R5)</button>
+            <button id="btn-save-r5" class="btn btn-primary btn-sm" style="margin-top: 10px;">Save contact / evidence entry</button>
           </form>
         </div>
 
         <!-- Chronological R5 Timeline -->
-        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Evidence & Contact History Timeline (R5)</h3>
+        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Contact & evidence history</h3>
         
         <div class="timeline">
-          ${participantJournal.length === 0 ? '<div style="font-size: 12px; color: var(--text-muted);">No dated R5 journal entries recorded yet for this participant.</div>' : ''}
-          ${participantJournal.slice().reverse().map(j => `
+          ${participantJournal.length === 0 ? '<div style="font-size: 12px; color: var(--text-muted);">No contact history yet. Use Log contact to record a call, what you asked and what they said.</div>' : ''}
+          ${participantJournal.slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(j => `
             <div class="timeline-item">
-              <div class="timeline-date">${new Date(j.timestamp).toLocaleString()} | Logged by <strong>${j.operator_id}</strong> via ${j.channel}</div>
+              <div class="timeline-date">${new Date(j.timestamp).toLocaleString()} | Logged by <strong>${j.operator_id}</strong> via ${label(j.channel)}</div>
               <div class="timeline-content">
                 <div style="display: flex; justify-content: space-between; font-weight: 600;">
-                  <span>${j.event_type}: ${j.action_performed}</span>
-                  <span class="badge badge-pending">${j.evidence_status}</span>
+                  <span>${label(j.event_type)}: ${j.action_performed}</span>
+                  <span class="badge badge-pending">${j.ai_provenance?.human_review ? 'Human-reviewed · ' : ''}${label(j.evidence_status)}</span>
                 </div>
                 <div style="margin-top: 6px; color: var(--text-secondary);">${j.raw_response}</div>
               </div>
@@ -210,6 +255,24 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
     </div>
   `;
 
+  const body=drawerContainer.querySelector('.drawer-body');
+  const action=nextAction(participant,journalEntries);
+  const intro=document.createElement('section');intro.className='participant-next';
+  intro.innerHTML=`<p>${escapeHtml(CLAIMED_ROLE_LABELS[participant.claimed_role])} · ${escapeHtml(participant.geography?.town)}, ${escapeHtml(participant.geography?.state)}</p><p><strong>Next:</strong> ${escapeHtml(action.text)}</p><button class="btn btn-primary" id="participant-next-action">${escapeHtml(action.action)}</button><p class="muted">Find person → Check fit → Contact → Interview → Review evidence</p>`;
+  body.prepend(intro);
+  const sections=[...body.children].filter(x=>x!==intro);
+  const overview=document.createElement('details');overview.className='form-section';overview.innerHTML='<summary>Overview and linked decisions</summary>';
+  const interview=document.createElement('details');interview.className='form-section';interview.id='participant-interview';interview.innerHTML='<summary>Interview & evidence</summary>';
+  const history=document.createElement('details');history.className='form-section';history.id='participant-history';history.innerHTML='<summary>Log contact & view history</summary>';
+  sections.forEach(el=>{if(el.querySelector('#form-log-r5')||el.classList.contains('timeline')||el.tagName==='H3')history.append(el);else if(el.querySelector('#form-ai-audio')||el.querySelector('#btn-drawer-add-case'))interview.append(el);else overview.append(el);});
+  body.append(overview,history,interview);
+  const openSection=()=>{const target=['interview','evidence'].includes(action.key)?interview:history;target.open=true;target.scrollIntoView({block:'start'});target.querySelector('input,select,button')?.focus();};
+  document.getElementById('participant-next-action').onclick=openSection;
+  const explanation=document.createElement('p');explanation.className='muted';explanation.textContent=participant.system_recommendation?.explanation||'Open Edit details in Participants to see the current fit check and reasons.';overview.prepend(explanation);
+  const logHelp=document.createElement('p');logHelp.textContent='Record the conversation here. If their contact outcome or qualification changed, use Edit fit / contact outcome above too. Checked means checked against a named source; it is not a guarantee.';history.insertBefore(logHelp,history.children[1]);
+  const aiForm=document.getElementById('form-ai-audio');
+  const fileBox=document.getElementById('ai-audio-file').closest('.form-group');aiForm.prepend(fileBox);
+  const steps=document.createElement('p');steps.className='muted';steps.textContent='1. Choose audio → 2. Confirm consent → 3. Confirm language → 4. Transcribe → 5. Review transcript → 6. Review claims → 7. Approve';aiForm.prepend(steps);
   drawerContainer.classList.remove('hidden');
 
   const closeDrawer = () => {
@@ -225,8 +288,30 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
   const btnAddJob = document.getElementById('btn-drawer-add-job');
   if (btnAddJob) btnAddJob.onclick = () => onAddJobClick(pRef);
 
+  const btnProcessAi = document.getElementById('btn-process-ai-audio');
+  if (btnProcessAi) {
+    btnProcessAi.onclick = async () => {
+      const consent = document.getElementById('ai-recording-consent').checked;
+      if (!consent) {
+        showErrors(document.getElementById('form-ai-audio'), ['Confirm the participant consented to recording and research processing before uploading.']);
+        return;
+      }
+      const lang = document.getElementById('ai-language-select').value;
+      const fileInput = document.getElementById('ai-audio-file');
+      const audioFile = fileInput.files[0];
+      if (onProcessAiAudio) {
+        if (!audioFile) { showErrors(document.getElementById('form-ai-audio'), ['Choose an interview audio file first.']); return; }
+        btnProcessAi.disabled=true;btnProcessAi.textContent='Transcribing… please keep this page open';
+        try { await onProcessAiAudio(pRef, consent, lang, audioFile); }
+        catch (error) { console.error(error);showErrors(document.getElementById('form-ai-audio'), ['We could not process this recording. Check that the interview service is running, then try again. Your selections are retained.']); }
+        finally { btnProcessAi.disabled=false;btnProcessAi.textContent='Transcribe and review'; }
+      }
+    };
+  }
+
   // Save R5 Entry Handler
-  document.getElementById('btn-save-r5').onclick = () => {
+  document.getElementById('btn-save-r5').onclick = async () => {
+    if (!document.getElementById('form-log-r5').reportValidity()) return;
     const nextJId = `TF-CD01-J${String(journalEntries.length + 1).padStart(3, '0')}`;
     const newEntry = createR5JournalEntry({
       journal_id: nextJId,
@@ -241,10 +326,10 @@ export function renderParticipantDrawer(participant, journalEntries = [], cases 
 
     const val = validateR5JournalEntry(newEntry);
     if (!val.isValid) {
-      alert(`Validation Error:\n• ${val.errors.join('\n• ')}`);
+      showErrors(document.getElementById('form-log-r5'),val.errors);
       return;
     }
 
-    onSaveJournalEntry(newEntry);
+    try { await onSaveJournalEntry(newEntry); } catch { showErrors(document.getElementById('form-log-r5'),['Could not save the contact. Your notes are still here; try again.']); }
   };
 }

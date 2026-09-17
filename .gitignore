@@ -16,6 +16,10 @@ yarn-error.log*
 .env
 .env.local
 
+# Uploads
+uploads/
+app/uploads/
+
 # IDE & System files
 .vscode/
 .idea/

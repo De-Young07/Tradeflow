@@ -1,0 +1,17 @@
+import {label, escapeHtml as e} from './workflow.js';
+export function toast(message){const el=document.getElementById('app-feedback');if(el){el.textContent=message;el.className='feedback';clearTimeout(el._timer);el._timer=setTimeout(()=>{el.textContent='';el.className='';},7000);}}
+export function showErrors(form,errors){let box=form.querySelector('.form-errors');if(!box){box=document.createElement('div');box.className='form-errors';box.setAttribute('role','alert');box.tabIndex=-1;box.id=`errors-${form.id}`;form.prepend(box);}box.innerHTML='<strong>Please check these details</strong><ul>'+errors.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul>';form.querySelectorAll('input,textarea,select').forEach(el=>el.setAttribute('aria-describedby',box.id));box.focus();}
+export function installUX(){
+ const enhance=()=>{
+  document.querySelectorAll('option').forEach(o=>{if(o.textContent==='NONE (Candidate Eligible)')o.textContent='No exclusion';});
+  document.querySelectorAll('option').forEach(o=>{if(/^[A-Z][A-Z_]+$/.test(o.textContent.trim()))o.textContent=label(o.textContent.trim());});
+  document.querySelectorAll('.badge').forEach(b=>{if(/^[A-Z][A-Z_]+$/.test(b.textContent.trim()))b.textContent=label(b.textContent.trim());});
+  document.querySelectorAll('.data-table').forEach(table=>{const headers=[...table.querySelectorAll('th')].map(th=>th.textContent);table.querySelectorAll('tbody tr').forEach(row=>[...row.children].forEach((td,i)=>{if(!td.dataset.label)td.dataset.label=headers[i]||'';}));});
+  document.querySelectorAll('#modal-close,#drawer-close').forEach(b=>b.setAttribute('aria-label','Close'));
+  document.querySelectorAll('.modal-overlay:not(.hidden),.drawer-overlay:not(.hidden)').forEach(overlay=>{const content=overlay.firstElementChild;if(!content)return;content.setAttribute('role','dialog');content.setAttribute('aria-modal','true');const h=content.querySelector('h2');if(h){h.id=h.id||overlay.id+'-title';content.setAttribute('aria-labelledby',h.id);}if(!overlay._wasOpen){overlay._wasOpen=true;overlay._returnFocus=document.activeElement;queueMicrotask(()=>content.querySelector('input:not([type=hidden]),button,select,textarea')?.focus());}});
+  document.querySelectorAll('.modal-overlay.hidden,.drawer-overlay.hidden').forEach(o=>{if(o._wasOpen){o._wasOpen=false;o._returnFocus?.focus?.();}});
+ };
+ const observer=new MutationObserver(()=>{observer.disconnect();enhance();observer.observe(document.getElementById('app'),{childList:true,subtree:true,attributes:true,attributeFilter:['class']});});
+ observer.observe(document.getElementById('app'),{childList:true,subtree:true,attributes:true,attributeFilter:['class']});enhance();
+ document.addEventListener('keydown',event=>{const overlay=document.querySelector('.modal-overlay:not(.hidden)')||document.querySelector('.drawer-overlay:not(.hidden)');if(!overlay)return;if(event.key==='Escape'){overlay.querySelector('#modal-close,#drawer-close')?.click();return;}if(event.key==='Tab'){const items=[...overlay.querySelectorAll('button,input,select,textarea,summary,[tabindex="0"]')].filter(x=>!x.disabled&&x.getClientRects().length);const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
+}

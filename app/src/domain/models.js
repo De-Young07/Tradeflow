@@ -180,6 +180,26 @@ export function createR5JournalEntry(data = {}) {
     evidence_status: data.evidence_status || EVIDENCE_STATUS.REPORTED,
     previous_state: data.previous_state || null,
     new_state: data.new_state || null,
-    mismatch_details: data.mismatch_details?.trim() || ''
+    mismatch_details: data.mismatch_details?.trim() || '',
+    ai_provenance: data.ai_provenance ? {
+      recording_consent_granted: Boolean(data.ai_provenance.recording_consent_granted),
+      consent_timestamp: data.ai_provenance.consent_timestamp || now,
+      audio_storage_key: data.ai_provenance.audio_storage_key || '',
+      operator_selected_language: data.ai_provenance.operator_selected_language || 'AUTO_DETECT',
+      provider_detected_language: data.ai_provenance.provider_detected_language || '',
+      code_switching_detected: Boolean(data.ai_provenance.code_switching_detected),
+      transcription_provider: data.ai_provenance.transcription_provider || '',
+      transcription_model_version: data.ai_provenance.transcription_model_version || '',
+      original_transcript: data.ai_provenance.original_transcript || '',
+      english_translation: data.ai_provenance.english_translation || '',
+      ai_draft_analysis: data.ai_provenance.ai_draft_analysis || null,
+      human_review: {
+        review_state: data.ai_provenance.human_review?.review_state || 'AI_DRAFT',
+        reviewer_id: data.ai_provenance.human_review?.reviewer_id || '',
+        review_timestamp: data.ai_provenance.human_review?.review_timestamp || '',
+        corrections_made: Boolean(data.ai_provenance.human_review?.corrections_made),
+        approved_claims: data.ai_provenance.human_review?.approved_claims || []
+      }
+    } : null
   };
 }

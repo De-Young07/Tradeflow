@@ -11,66 +11,20 @@
 </head>
 <body>
   <div id="app">
-    <!-- Top Header -->
-    <header class="app-header">
-      <div class="header-brand">
-        <div class="brand-badge">INTERNAL OPS</div>
-        <h1>TradeFlow NG <span>/ Discovery Operations</span></h1>
-      </div>
-      <div class="header-scope-info">
-        <span class="scope-tag">CD-01 to CD-05 Discovery Scope</span>
-        <span class="scope-details">Tomatoes | Dikko / Niger State</span>
-      </div>
-      <div class="header-actions">
-        <button id="btn-new-candidate" class="btn btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Register Candidate
-        </button>
-        <button id="btn-export-backup" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Backup / Export
-        </button>
-        <button id="btn-settings-danger" class="btn btn-ghost" title="Settings & Safeguards">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- Main Navigation Tabs -->
-    <nav class="app-nav">
-      <button class="nav-tab active" data-tab="tab-dashboard">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="15" width="7" height="6"></rect></svg>
-        Operational Dashboard
-      </button>
-      <button class="nav-tab" data-tab="tab-registry">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Participant Registry (R1)
-        <span id="badge-participant-count" class="tab-badge">0</span>
-      </button>
-      <button class="nav-tab" data-tab="tab-cases">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        Transaction Cases (R2)
-        <span id="badge-case-count" class="tab-badge">0</span>
-      </button>
-      <button class="nav-tab" data-tab="tab-jobs">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-        Upcoming Jobs (R3)
-        <span id="badge-job-count" class="tab-badge">0</span>
-      </button>
-      <button class="nav-tab" data-tab="tab-decisions">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-        Stage Decisions (R4)
-        <span id="badge-decision-count" class="tab-badge">0</span>
-      </button>
-      <button class="nav-tab" data-tab="tab-journal">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        Evidence Journal Audit Trail (R5)
-        <span id="badge-journal-count" class="tab-badge">0</span>
-      </button>
+    <header class="app-header"><div class="header-brand"><h1>TradeFlow Discovery</h1><p>Internal operator workspace · Tomatoes · Dikko/Niger</p></div><button id="btn-new-candidate" class="btn btn-primary">+ Add Potential Participant</button></header>
+    <nav class="app-nav" aria-label="Main navigation">
+      <button class="nav-tab active" data-tab="tab-dashboard">Home</button>
+      <button class="nav-tab" data-tab="tab-registry">Participants</button>
+      <button class="nav-tab" data-tab="tab-followups">Follow-ups</button>
+      <button class="nav-tab" data-tab="tab-journal">Interviews / Evidence</button>
+      <button class="nav-tab" data-tab="tab-intelligence">Discovery Insights</button>
     </nav>
-
+    <details class="secondary-navigation"><summary>More tools &amp; data management</summary><nav aria-label="Supporting tools">
+      <button class="nav-tab" data-tab="tab-cases">Transaction cases</button><button class="nav-tab" data-tab="tab-jobs">Upcoming sales / purchases</button><button class="nav-tab" data-tab="tab-decisions">Stage decisions</button><button class="nav-tab" data-tab="tab-brief">Daily brief</button><button id="btn-export-backup" class="btn btn-ghost">Backup / Export</button><button id="btn-settings-danger" class="btn btn-ghost">Data management</button>
+    </nav></details>
+    <div id="app-feedback" role="status" aria-live="polite"></div>
     <!-- Content Sections -->
-    <main class="app-content">
+    <main class="app-content"><section id="tab-followups" class="tab-pane"></section>
       <section id="tab-dashboard" class="tab-pane active">
         <!-- Rendered by dashboard.js -->
       </section>
@@ -93,6 +47,14 @@
 
       <section id="tab-journal" class="tab-pane">
         <!-- Rendered by journalView.js -->
+      </section>
+
+      <section id="tab-intelligence" class="tab-pane">
+        <!-- Rendered by discoveryIntelligence.js -->
+      </section>
+
+      <section id="tab-brief" class="tab-pane">
+        <!-- Rendered by dailyBriefView.js -->
       </section>
     </main>
 

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {nextAction,pendingPeople,label,lastContact,escapeHtml} from '../ui/workflow.js';
+const base={participant_ref:'P1',eligibility_status:'ELIGIBLE',contact_outcome:'AGREED'};
+assert.equal(nextAction(base).key,'interview');
+assert.equal(nextAction({...base,contact_outcome:'DECLINED'}).key,'closed');
+assert.equal(nextAction({...base,eligibility_status:'INELIGIBLE'}).key,'outside');
+assert.equal(nextAction({...base,eligibility_status:'PENDING_VERIFICATION'}).key,'verify');
+assert.equal(nextAction({...base,contact_outcome:'REACHED'}).key,'contact');
+assert.equal(nextAction(base,[{participant_ref:'P1',ai_provenance:{human_review:{review_state:'APPROVED'}}}]).key,'evidence');
+assert.equal(nextAction(base,[{participant_ref:'P1',ai_provenance:{human_review:{review_state:'PENDING'}}}]).key,'interview');
+assert.equal(nextAction(base,[{participant_ref:'P2',ai_provenance:{human_review:{review_state:'APPROVED'}}}]).key,'interview');
+assert.equal(pendingPeople([{...base,contact_outcome:'DECLINED'},base]).length,0);
+assert.equal(label('PENDING_VERIFICATION'),'Needs verification');
+assert.equal(lastContact('P1',[{participant_ref:'P1',timestamp:'2026-09-01'},{participant_ref:'P1',timestamp:'2026-09-10'}]),'2026-09-10');
+assert.equal(escapeHtml('<script>'), '&lt;script&gt;');
+console.log('12 UX workflow assertions passed.');

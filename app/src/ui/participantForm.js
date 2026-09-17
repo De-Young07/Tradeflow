@@ -1,3 +1,5 @@
+import { label } from './workflow.js';
+import { showErrors } from './ux.js';
 /**
  * Candidate Intake Form & Decision Support System UI
  */
@@ -27,7 +29,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
   modalContainer.innerHTML = `
     <div class="modal-content">
       <div class="modal-header">
-        <h2>${isEdit ? 'Edit Participant Record' : 'Register New Discovery Candidate'}</h2>
+        <h2>${isEdit ? 'Edit participant details' : 'Add Potential Participant'}</h2>
         <button id="modal-close" class="btn btn-ghost" style="padding: 4px 8px;">✕</button>
       </div>
 
@@ -49,7 +51,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
             </div>
 
             <div class="form-group">
-              <label for="input-name">Candidate Name / Pseudonym *</label>
+              <label for="input-name">Name / participant label *</label>
               <input type="text" id="input-name" class="form-control" value="${initialData.full_name}" placeholder="e.g. Mallam Garba Dikko" required>
             </div>
 
@@ -60,7 +62,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
 
             <!-- Role & Scope -->
             <div class="form-group">
-              <label for="input-role">Claimed Role *</label>
+              <label for="input-role">What do they do? *</label>
               <select id="input-role" class="form-control">
                 <option value="${CLAIMED_ROLES.PRODUCER}" ${initialData.claimed_role === CLAIMED_ROLES.PRODUCER ? 'selected' : ''}>Actual Tomato Producer</option>
                 <option value="${CLAIMED_ROLES.RETAIL_PURCHASER}" ${initialData.claimed_role === CLAIMED_ROLES.RETAIL_PURCHASER ? 'selected' : ''}>Retail Bulk Tomato Purchaser</option>
@@ -71,7 +73,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
             </div>
 
             <div class="form-group">
-              <label for="input-commodity">Target Commodity *</label>
+              <label for="input-commodity">Commodity *</label>
               <input type="text" id="input-commodity" class="form-control" value="${initialData.commodity || TARGET_SCOPE.COMMODITY}" required>
             </div>
 
@@ -103,26 +105,26 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
 
             <!-- Retail & Authority Checks -->
             <div class="form-group full-width" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
-              <label style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Authority & Verification Checklist</label>
+              <label style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Can they make the relevant decision?</label>
             </div>
 
             <div class="form-group full-width" style="display: flex; gap: 20px;">
-              <label><input type="checkbox" id="chk-stock" ${initialData.authority_info?.stock_control ? 'checked' : ''}> Controls Stock Decisions</label>
-              <label><input type="checkbox" id="chk-approval" ${initialData.authority_info?.purchase_approval ? 'checked' : ''}> Approves Bulk Purchases</label>
-              <label><input type="checkbox" id="chk-spending" ${initialData.authority_info?.spending_authority ? 'checked' : ''}> Spending Budget Authority</label>
+              <label><input type="checkbox" id="chk-stock" ${initialData.authority_info?.stock_control ? 'checked' : ''}> Do they control tomato stock?</label>
+              <label><input type="checkbox" id="chk-approval" ${initialData.authority_info?.purchase_approval ? 'checked' : ''}> Can they approve bulk purchases?</label>
+              <label><input type="checkbox" id="chk-spending" ${initialData.authority_info?.spending_authority ? 'checked' : ''}> Can they authorize spending?</label>
             </div>
 
             <div class="form-group">
-              <label for="input-verification-level">Authority Verification Level *</label>
+              <label for="input-verification-level">How did you check their role and authority? *</label>
               <select id="input-verification-level" class="form-control">
-                <option value="NOT_VERIFIED" ${initialData.authority_info?.verification_level === 'NOT_VERIFIED' ? 'selected' : ''}>NOT_VERIFIED (Pending direct check)</option>
-                <option value="CHECKED" ${initialData.authority_info?.verification_level === 'CHECKED' ? 'selected' : ''}>CHECKED (Direct phone check)</option>
-                <option value="VERIFIED" ${initialData.authority_info?.verification_level === 'VERIFIED' ? 'selected' : ''}>VERIFIED (Field visit / document check)</option>
+                <option value="NOT_VERIFIED" ${initialData.authority_info?.verification_level === 'NOT_VERIFIED' ? 'selected' : ''}>Not checked yet</option>
+                <option value="CHECKED" ${initialData.authority_info?.verification_level === 'CHECKED' ? 'selected' : ''}>Checked directly by phone</option>
+                <option value="VERIFIED" ${initialData.authority_info?.verification_level === 'VERIFIED' ? 'selected' : ''}>Checked in person / against a document</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="input-contact-outcome">Initial Contact Outcome *</label>
+              <label for="input-contact-outcome">Latest contact outcome *</label>
               <select id="input-contact-outcome" class="form-control">
                 <option value="${CONTACT_OUTCOMES.NOT_CONTACTED}" ${initialData.contact_outcome === CONTACT_OUTCOMES.NOT_CONTACTED ? 'selected' : ''}>NOT_CONTACTED</option>
                 <option value="${CONTACT_OUTCOMES.NO_RESPONSE}" ${initialData.contact_outcome === CONTACT_OUTCOMES.NO_RESPONSE ? 'selected' : ''}>NO_RESPONSE</option>
@@ -142,7 +144,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
           <!-- Real-Time Decision Support Panel -->
           <div id="decision-support-panel" class="recommendation-box status-PENDING_VERIFICATION">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>Rule-Based Decision Support Engine Recommendation:</strong>
+              <strong>Do they fit our discovery group?</strong>
               <span id="rec-status-badge" class="badge badge-pending">PENDING_VERIFICATION</span>
             </div>
             <div id="rec-explanation" style="font-size: 12px; margin-top: 6px; color: var(--text-secondary);">
@@ -154,7 +156,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
           <!-- Operator Final Eligibility Decision -->
           <div class="form-grid" style="margin-top: 16px;">
             <div class="form-group">
-              <label for="input-operator-eligibility">Operator Confirmed Eligibility *</label>
+              <label for="input-operator-eligibility">Your qualification decision *</label>
               <select id="input-operator-eligibility" class="form-control">
                 <option value="${ELIGIBILITY_STATUS.ELIGIBLE}" ${initialData.eligibility_status === ELIGIBILITY_STATUS.ELIGIBLE ? 'selected' : ''}>ELIGIBLE</option>
                 <option value="${ELIGIBILITY_STATUS.PENDING_VERIFICATION}" ${initialData.eligibility_status === ELIGIBILITY_STATUS.PENDING_VERIFICATION ? 'selected' : ''}>PENDING_VERIFICATION</option>
@@ -163,7 +165,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
             </div>
 
             <div class="form-group">
-              <label for="input-exclusion-reason">Structured Exclusion Reason Code</label>
+              <label for="input-exclusion-reason">Reason they are outside the group</label>
               <select id="input-exclusion-reason" class="form-control">
                 <option value="${EXCLUSION_REASONS.NONE}">NONE (Candidate Eligible)</option>
                 <option value="${EXCLUSION_REASONS.OUTSIDE_COMMODITY}">OUTSIDE_COMMODITY</option>
@@ -178,12 +180,12 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
             </div>
 
             <div class="form-group full-width" id="group-override-reason" style="display: none;">
-              <label for="input-override-reason" style="color: #f87171;">Operator Override Justification * (Required when overriding system recommendation)</label>
+              <label for="input-override-reason" style="color: #f87171;">Why does your decision differ from the fit check? *</label>
               <textarea id="input-override-reason" class="form-control" rows="2" placeholder="Provide mandatory justification for overriding system recommendation...">${initialData.override_reason}</textarea>
             </div>
 
             <div class="form-group full-width">
-              <label for="input-qualification-basis">Qualification Basis Notes</label>
+              <label for="input-qualification-basis">What supports this decision?</label>
               <textarea id="input-qualification-basis" class="form-control" rows="2" placeholder="Enter supporting notes summarizing qualification evidence...">${initialData.qualification_basis}</textarea>
             </div>
           </div>
@@ -192,12 +194,27 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
 
       <div class="modal-footer">
         <button id="btn-cancel-modal" class="btn btn-ghost">Cancel</button>
-        <button id="btn-save-candidate" class="btn btn-primary">Save Participant Record (R1)</button>
+        <button id="btn-save-candidate" class="btn btn-primary">Save participant</button>
       </div>
     </div>
   `;
 
   modalContainer.classList.remove('hidden');
+
+  const form=document.getElementById('form-candidate'), grid=form.querySelector('.form-grid');
+  const group=(title,ids,open=true)=>{const section=document.createElement('details');section.open=open;section.className='form-section';const summary=document.createElement('summary');summary.textContent=title;section.append(summary);const inner=document.createElement('div');inner.className='form-grid';section.append(inner);ids.forEach(id=>{const box=document.getElementById(id)?.closest('.form-group');if(box)inner.append(box);});grid.before(section);return section;};
+  group('1. Who are they?', ['input-name','input-phone']);
+  group('2. What do they do?', ['input-role']);
+  group('3. Where do they operate?', ['input-town','input-state','input-commodity']);
+  const referral=group('4. How did we find them?', ['input-referral-type','input-referral-source','input-contact-outcome']);
+  const hint=document.createElement('p');hint.textContent='A trader referral does not automatically qualify. Confirm their actual role and authority.';referral.append(hint);
+  group('5. Can they make the relevant decision?', ['chk-stock','input-verification-level']);
+  group('Record details (reference and practice data)', ['input-ref','input-record-type'],false);
+  const disclosure=()=>{const retail=['RETAIL_PURCHASER','RETAIL_APPROVER'].includes(document.getElementById('input-role').value);document.getElementById('chk-approval').closest('label').hidden=!retail;document.getElementById('chk-spending').closest('label').hidden=!retail;hint.hidden=document.getElementById('input-referral-type').value!=='EXISTING_TRADER';};
+  document.getElementById('input-role').addEventListener('change',disclosure);document.getElementById('input-referral-type').addEventListener('change',disclosure);disclosure();
+  document.getElementById('input-exclusion-reason').value=initialData.exclusion_reason||'NONE';
+  const extra=document.createElement('div');extra.className='form-group full-width';extra.innerHTML='<label for="exclusion-notes">Explain another exclusion reason (at least 10 characters)</label><textarea id="exclusion-notes" class="form-control"></textarea>';form.append(extra);document.getElementById('exclusion-notes').value=initialData.exclusion_notes||'';
+  const toggleExtra=()=>extra.hidden=document.getElementById('input-exclusion-reason').value!=='OTHER';document.getElementById('input-exclusion-reason').addEventListener('change',toggleExtra);toggleExtra();
 
   // Real-Time Recommendation Update Helper
   const updateRecommendation = () => {
@@ -227,9 +244,9 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
     const failedList = document.getElementById('rec-failed-list');
 
     recBox.className = `recommendation-box status-${evalResult.suggested_status}`;
-    badge.textContent = evalResult.suggested_status;
+    badge.textContent = label(evalResult.suggested_status);
     badge.className = `badge badge-${evalResult.suggested_status.toLowerCase().replace('_verification', '')}`;
-    explanation.textContent = evalResult.explanation;
+    explanation.textContent = evalResult.suggested_status === 'ELIGIBLE' ? 'Fits the tomato, Dikko/Niger and role checks under the current rules. Qualification does not establish demand.' : evalResult.suggested_status === 'PENDING_VERIFICATION' ? 'Contact this person and confirm the missing details before enrolling them.' : 'This person is outside the selected group. See the reasons below.';
 
     failedList.innerHTML = evalResult.failed_checks.map(f => `<li>${f.message}</li>`).join('');
 
@@ -275,7 +292,11 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
     }
   });
 
-  // Initial Run
+  // Explicit adoption keeps the operator in control of the stored decision.
+  const apply=document.createElement('button');apply.type='button';apply.className='btn btn-secondary';apply.textContent='Use this fit result';
+  document.getElementById('decision-support-panel').append(apply);
+  apply.onclick=()=>{const result=updateRecommendation();document.getElementById('input-operator-eligibility').value=result.suggested_status;document.getElementById('input-exclusion-reason').value=result.exclusion_reason;updateRecommendation();toggleExtra();};
+  grid.querySelector('.full-width')?.remove();
   const initialEval = updateRecommendation();
 
   // Close handlers
@@ -284,7 +305,8 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
   document.getElementById('btn-cancel-modal').onclick = closeModal;
 
   // Save Handler
-  document.getElementById('btn-save-candidate').onclick = () => {
+  document.getElementById('btn-save-candidate').onclick = async () => {
+    if (!document.getElementById('form-candidate').reportValidity()) return;
     const evalResult = updateRecommendation();
 
     const opEligibility = document.getElementById('input-operator-eligibility').value;
@@ -318,6 +340,7 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
       system_recommendation: { status: evalResult.suggested_status, failed_checks: evalResult.failed_checks.map(f => f.message), explanation: evalResult.explanation },
       operator_override: isOverride,
       override_reason: overrideReason,
+      exclusion_notes: document.getElementById('exclusion-notes').value,
       qualification_basis: document.getElementById('input-qualification-basis').value
     };
 
@@ -325,11 +348,10 @@ export function renderParticipantModal(onSave, existingParticipants = [], editPa
     const valResult = validateR1Participant(finalParticipant);
 
     if (!valResult.isValid) {
-      alert(`Validation Errors:\n• ${valResult.errors.join('\n• ')}`);
+      showErrors(document.getElementById("form-candidate"), valResult.errors);
       return;
     }
 
-    onSave(finalParticipant);
-    closeModal();
+    try { await onSave(finalParticipant); closeModal(); } catch { showErrors(document.getElementById("form-candidate"), ["Could not save. Your entries are still here. Try again."]); }
   };
 }
